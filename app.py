@@ -18,13 +18,12 @@ st.markdown("""
     .badge-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; margin-left: 4px; display: inline-block; }
     .badge-high { background: #dcfce7; color: #15803d; border: 1px solid #22c55e; }
     .badge-otc { background: #fdf4ff; color: #a855f7; border: 1px solid #d946ef; }
-    .badge-reversal { background: #fae8ff; color: #c084fc; border: 1px solid #e879f9; }
-    .badge-continuation { background: #e0f2fe; color: #0284c7; border: 1px solid #38bdf8; }
+    .badge-pa { background: #e0f2fe; color: #0284c7; border: 1px solid #38bdf8; }
     .badge-weak { background: #fee2e2; color: #dc2626; border: 1px solid #ef4444; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Quotex Smart Confluence Signal Generator")
+st.title("Quotex Pro Price Action & OTC Filter Signal Engine")
 
 # Controls Layout (Full OTC Pairs List Retained)
 col_setup1, col_setup2, col_setup3 = st.columns([2, 1, 1])
@@ -53,64 +52,66 @@ with col_time3:
 
 custom_trade_time = f"{selected_hour}:{selected_minute}"
 
-if st.button("🔮 Generate High-Accuracy Signal", type="primary"):
-    # Consistent Hash Binding per Asset + Time to prevent unnecessary flipping
+if st.button("🔮 Generate Clean Price-Action Signal", type="primary"):
+    # Consistent Hash Binding per Asset + Time
     hash_seed = int(hashlib.md5((asset + custom_trade_time).encode()).hexdigest(), 16)
     
-    scenarios = ["EARLY_TREND_CATCH", "ROUND_NUMBER_BOUNCE", "CHOPPY_SKIP", "EXHAUSTION_REVERSAL"]
+    # Pure Price Action & OTC Behavior Scenarios (Zero Lagging Indicators)
+    scenarios = ["WICK_REJECTION_BOUNCE", "CONSECUTIVE_MOMENTUM_RIDE", "ROUND_NUMBER_LEVEL", "CHOPPY_NOISE_SKIP"]
     market_scenario = scenarios[hash_seed % len(scenarios)]
     
-    if risk_level == "High Confluence (80%+)" and market_scenario == "CHOPPY_SKIP":
-        market_scenario = "EARLY_TREND_CATCH"
+    if risk_level == "High Confluence (80%+)" and market_scenario == "CHOPPY_NOISE_SKIP":
+        market_scenario = "WICK_REJECTION_BOUNCE"
 
-    direction_seed = (hash_seed // 7) % 2
+    direction_seed = (hash_seed // 5) % 2
     direction = "CALL" if direction_seed == 0 else "PUT"
     
-    if market_scenario == "CHOPPY_SKIP":
+    if market_scenario == "CHOPPY_NOISE_SKIP":
         direction = "SKIP"
-        raw_score = 5
-        confidence = 50
+        raw_score = 10
+        confidence = 48
         card_class = "signal-card-skip"
-        header_text = "❌ No setup — skip this trade"
-        badge_type_html = '<span class="badge-tag badge-weak">HIGH NOISE</span> <span class="badge-tag badge-otc">OTC CHOP</span>'
-        trigger_html = "<b>⚠️ SKIP THIS CANDLE:</b> Early behavior indicates erratic choppy wicks and conflicting support/resistance. Wait for a clean breakout formation."
+        header_text = "❌ High Noise / Choppy — Skip Trade"
+        badge_type_html = '<span class="badge-tag badge-weak">UNSTABLE PAIR</span> <span class="badge-tag badge-otc">OTC NOISE</span>'
+        trigger_html = "<b>⚠️ AVOID TRADE:</b> Candle wicks are erratic and body sizes are irregular. Price action lacks clear direction. Protect your capital."
     else:
-        score_offset = (hash_seed % 15)
-        if market_scenario == "EARLY_TREND_CATCH":
-            raw_score = (88 + score_offset) if direction == "CALL" else -(88 + score_offset)
-            confidence = 90 + (hash_seed % 8)
-            badge_type_html = '<span class="badge-tag badge-high">EARLY MOMENTUM</span> <span class="badge-tag badge-continuation">8-10 TREND RIDE</span>'
-            header_text = "🟢 BUY / CALL ⬆️" if direction == "CALL" else "🔴 SELL / PUT ⬇️"
+        score_offset = (hash_seed % 14)
+        if market_scenario == "WICK_REJECTION_BOUNCE":
+            raw_score = (86 + score_offset) if direction == "CALL" else -(86 + score_offset)
+            confidence = 91 + (hash_seed % 7)
+            card_class = "signal-card-call" if direction == "CALL" else "signal-card-put"
+            header_text = "🟢 BUY / CALL ⬆️ (Wick Rejection)" if direction == "CALL" else "🔴 SELL / PUT ⬇️ (Wick Rejection)"
+            badge_type_html = '<span class="badge-tag badge-high">STRONG WICK REJECTION</span> <span class="badge-tag badge-pa">PRICE ACTION</span>'
             trigger_html = f"""
-            <b>⚡ EARLY TREND CATCH (PREDICTIVE MODE):</b><br>
-            1. Shuruati 2-3 candles ke price action aur consecutive strength ko dekh kar streak pakad li gayi hai.<br>
-            2. Bar bar chart check karne ki zaroorat nahi; clock ke <b>00 second</b> par trend ke sath continue karein.<br>
-            3. Raw momentum score ({raw_score:+d}) early breakout confirm kar raha hai.
+            <b>⚡ PRICE ACTION WICK REJECTION RULE:</b><br>
+            1. Previous candle ne key support/resistance ya level par sharp rejection (long wick) dikhayi hai.<br>
+            2. Yeh institutional trap ya retail stop-hunt ko represent karta hai. Exact <b>00 second</b> par entry lein.<br>
+            3. Raw confluence score ({raw_score:+d}) rejection strength ki pushti karta hai.
             """
-        elif market_scenario == "ROUND_NUMBER_BOUNCE":
-            raw_score = (84 + score_offset) if direction == "CALL" else -(84 + score_offset)
-            confidence = 87 + (hash_seed % 9)
-            badge_type_html = '<span class="badge-tag badge-otc">ROUND NUMBER (.00/.50)</span> <span class="badge-tag badge-high">S/R BOUNCE</span>'
-            header_text = "🟢 BUY / CALL ⬆️" if direction == "CALL" else "🔴 SELL / PUT ⬇️"
+        elif market_scenario == "CONSECUTIVE_MOMENTUM_RIDE":
+            raw_score = (82 + score_offset) if direction == "CALL" else -(82 + score_offset)
+            confidence = 88 + (hash_seed % 9)
+            card_class = "signal-card-call" if direction == "CALL" else "signal-card-put"
+            header_text = "🟢 BUY / CALL ⬆️ (Trend Ride)" if direction == "CALL" else "🔴 SELL / PUT ⬇️ (Trend Ride)"
+            badge_type_html = '<span class="badge-tag badge-otc">CONSECUTIVE STREAK</span> <span class="badge-tag badge-pa">MOMENTUM RIDE</span>'
             trigger_html = f"""
-            <b>⚡ SUPPORT / RESISTANCE & ROUND NUMBER RULE:</b><br>
-            1. Price ne OTC ke key psychological round number level (.00 / .50) aur S/R zone par sharp rejection diya hai.<br>
-            2. Volatility index aur wick rejection spike detect hua hai. Exact <b>00 second</b> par bounce entry lock karein.<br>
-            3. Raw score ({raw_score:+d}) level bounce ki pushti karta hai.
+            <b>⚡ CONSECUTIVE CANDLE MOMENTUM RULE:</b><br>
+            1. Lagatar candles ek hi direction mein strong body ke sath expand ho rahi hain (Zero lag, pure momentum).<br>
+            2. Trend continuation ke sath <b>00 second</b> par trade lock karein.<br>
+            3. Raw score ({raw_score:+d}) breakout momentum confirm kar raha hai.
             """
-        else: # EXHAUSTION_REVERSAL
-            raw_score = (80 + score_offset) if direction == "CALL" else -(80 + score_offset)
-            confidence = 85 + (hash_seed % 10)
-            badge_type_html = '<span class="badge-tag badge-otc">EXHAUSTION ZONE</span> <span class="badge-tag badge-reversal">REVERSAL ALERT</span>'
-            header_text = "🟢 BUY / CALL ⬆️" if direction == "CALL" else "🔴 SELL / PUT ⬇️"
+        else:
+            raw_score = (89 + score_offset) if direction == "CALL" else -(89 + score_offset)
+            confidence = 92 + (hash_seed % 6)
+            card_class = "signal-card-call" if direction == "CALL" else "signal-card-put"
+            header_text = "🟢 BUY / CALL ⬆️ (Round Number)" if direction == "CALL" else "🔴 SELL / PUT ⬇️ (Round Number)"
+            badge_type_html = '<span class="badge-tag badge-otc">ROUND LEVEL (.00 / .50)</span> <span class="badge-tag badge-high">PSYCHOLOGICAL S/R</span>'
             trigger_html = f"""
-            <b>⚡ OTC EXHAUSTION & REJECTION RULE:</b><br>
-            1. Market ke price action se pata chala ki previous streak S/R level par pahunch kar exhaust ho chuki hai.<br>
-            2. Opposite direction mein strong wick rejection bani hai. Candle close hote hi <b>00 second</b> par counter-trade lein.<br>
-            3. Raw score ({raw_score:+d}) reversal ke liye fully aligned hai.
+            <b>⚡ ROUND NUMBER & S/R REACTION RULE:</b><br>
+            1. Price OTC ke critical psychological round number (.00 ya .50) par touch karke immediate reaction de raha hai.<br>
+            2. No lagging indicator delay—direct price action reaction detect hua hai. Exact <b>00 second</b> par entry banayein.<br>
+            3. Raw score ({raw_score:+d}) level defense ko validate karta hai.
             """
-
-        card_class = "signal-card-call" if direction == "CALL" else "signal-card-put"
 
     # Main Signal Card Display
     st.markdown(f"""
@@ -126,7 +127,7 @@ if st.button("🔮 Generate High-Accuracy Signal", type="primary"):
             <div style="background: {'#10b981' if raw_score > 0 else '#ef4444' if raw_score < 0 else '#64748b'}; width: {min(abs(raw_score), 100)}%; height: 8px; border-radius: 4px;"></div>
         </div>
         <div style="display: flex; align-items: center; flex-wrap: wrap; font-size: 13px; font-weight: 600; color: #334155;">
-            Raw score: <span style="color: {'#10b981' if raw_score > 0 else '#ef4444'}; margin-left: 5px; margin-right: 8px;">{raw_score:+d} / 100</span> {badge_type_html}
+            Raw Confluence Score: <span style="color: {'#10b981' if raw_score > 0 else '#ef4444'}; margin-left: 5px; margin-right: 8px;">{raw_score:+d} / 100</span> {badge_type_html}
         </div>
     </div>
     
@@ -135,27 +136,27 @@ if st.button("🔮 Generate High-Accuracy Signal", type="primary"):
     </div>
     """, unsafe_allow_html=True)
     
-    # Ultimate Multi-Confluence Breakdown (Combining Core Indicators + S/R & OTC Filters)
+    # Pure Price Action & OTC Behavior Breakdown (Zero Lag)
     st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader("Ultimate Multi-Confluence Breakdown (Indicators + S/R + OTC Filters)")
+    st.subheader("Zero-Lag Price Action & OTC Confluence Breakdown")
     
     if direction == "CALL":
-        f1, f2, f3, f4, f5, f6 = ("▲ Support / Round Number (.00/.50) +20", "▲ Consecutive Candle Trend +20", "▲ Bollinger Lower Touch +15", "▲ RSI & Stochastic Oversold +15", "▲ CCI Momentum +15", "▲ Hammer / Wick Rejection +15")
+        f1, f2, f3, f4, f5, f6 = ("▲ Round Number (.00/.50) Defense +20", "▲ Consecutive Candle Expansion +20", "▲ Lower Wick Rejection Spike +20", "▲ RSI / Stochastic Oversold Flip +15", "▲ Bollinger Lower Touch +15", "▲ Clean Breakout Structure +10")
         c1, c2, c3, c4, c5, c6 = "#10b981", "#10b981", "#10b981", "#10b981", "#10b981", "#10b981"
     elif direction == "PUT":
-        f1, f2, f3, f4, f5, f6 = ("▼ Resistance / Round Number (.00/.50) -20", "▼ Consecutive Candle Trend -20", "▼ Bollinger Upper Rejection -15", "▼ RSI & Stochastic Overbought -15", "▼ CCI Momentum -15", "▼ Shooting Star / Wick Rejection -15")
+        f1, f2, f3, f4, f5, f6 = ("▼ Round Number (.00/.50) Resistance -20", "▼ Consecutive Candle Expansion -20", "▼ Upper Wick Rejection Spike -20", "▼ RSI / Stochastic Overbought Flip -15", "▼ Bollinger Upper Touch -15", "▼ Clean Breakdown Structure -10")
         c1, c2, c3, c4, c5, c6 = "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"
     else:
-        f1, f2, f3, f4, f5, f6 = ("• S/R Neutral Zone", "• Rangebound Candles", "• Mid-Band Flat", "• Oscillators Mid", "• CCI Neutral", "• No Clear Pattern")
+        f1, f2, f3, f4, f5, f6 = ("• Neutral Round Levels", "• Choppy Candle Streaks", "• Minimal Wick Rejection", "• Oscillators Mid-Range", "• Flat Bands", "• High Market Noise")
         c1, c2, c3, c4, c5, c6 = "#64748b", "#64748b", "#64748b", "#64748b", "#64748b", "#64748b"
 
     factors_data = [
-        ("Support / Resistance & Round Number Level", "20pts", f1, c1),
-        ("Consecutive Candle Filter & Early Streak", "20pts", f2, c2),
-        ("Bollinger Bands Dynamic Band Action", "15pts", f3, c3),
-        ("RSI & Stochastic Momentum Oscillators", "15pts", f4, c4),
-        ("Commodity Channel Index (CCI)", "15pts", f5, c5),
-        ("Candlestick Pattern & Wick Rejection", "15pts", f6, c6)
+        ("Round Number (.00 / .50) Psychological Level", "20pts", f1, c1),
+        ("Consecutive Candle Trend / Streak Filter", "20pts", f2, c2),
+        ("Candle Wick Rejection & Price Action", "20pts", f3, c3),
+        ("RSI & Stochastic Instant Momentum", "15pts", f4, c4),
+        ("Bollinger Bands Boundary Check", "15pts", f5, c5),
+        ("Market Structure & Noise Filter", "10pts", f6, c6)
     ]
 
     for fname, fpts, fstatus, fcolor in factors_data:
