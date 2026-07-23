@@ -135,7 +135,9 @@ with tab1:
                 Raw Confluence Score: <span style="color: {'#10b981' if decision == 'CALL' else '#ef4444' if decision == 'PUT' else '#64748b'}; margin-left: 5px; margin-right: 8px;">{raw_score:+d} / 100</span> {badge_html}
             </div>
         </div>
+        """, unsafe_allow_html=True)
         
+        st.markdown(f"""
         <div class="{'trigger-box' if decision != 'SKIP' else 'skip-box'}">
             {trigger_text}
         </div>
@@ -190,7 +192,7 @@ with tab2:
     st.markdown("""
     <div class="trigger-box">
         <b>1. Why Accuracy Jumps to 80-90%:</b><br>
-        Pehle app har minute signal deta tha (jisse accuracy 50% rehti thi). Ab 'Institutional Mode' active hone ki wajah se app 70% kharab setups ko khud-b-khud **SKIP** kar deta hai aur sirf 100% confirmed setups par signal generate karta hai.
+        Pehle app har minute signal deta tha (jisse accuracy 50% rehti thi). Ab 'Institutional Mode' active hone ki wajah se app 70% kharab setups ko khud-b-khud <b>SKIP</b> kar deta hai aur sirf 100% confirmed setups par signal generate karta hai.
     </div>
     <br>
     <div class="skip-box">
