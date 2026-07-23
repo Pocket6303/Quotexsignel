@@ -81,42 +81,53 @@ with tab1:
             card_class = "signal-card-skip"
             header_text = "❌ Smart Skip — Low Accuracy / Noise Detected"
             badge_html = '<span class="badge-tag badge-weak">WEAK SETUP BLOCKED</span> <span class="badge-tag badge-otc">PROTECTING 80%+ ACCURACY</span>'
-            trigger_text = f"<b>⚠️ 80-90% ACCURACY FILTER:</b> Market volatility is choppy or M15/M5 trends do not match 100%. App has blocked this trade to protect your capital. Do not trade."
-            martingale_text = "<b>🛡️ MARTINGALE SAFETY ADVICE:</b> Do NOT take Martingale here because the initial signal was filtered out due to low probability."
+            
+            trigger_text = (
+                "**⚠️ 80-90% ACCURACY FILTER:** Market volatility is choppy or M15/M5 trends do not match 100%. "
+                "App has blocked this trade to protect your capital. Do not trade."
+            )
+            martingale_text = (
+                "**🛡️ MARTINGALE SAFETY ADVICE:** Do NOT take Martingale here because the initial "
+                "signal was filtered out due to low probability."
+            )
+            
         elif decision == "CALL":
             raw_score = 92 + (hash_seed % 8)
             confidence = 94 + (hash_seed % 5)
             card_class = "signal-card-call"
             header_text = "🟢 BUY / CALL ⬆️ (High-Accuracy 90%+ Setup)"
             badge_html = '<span class="badge-tag badge-high">M15/M5 100% ALIGNED</span> <span class="badge-tag badge-pa">INDICATORS CONFIRMED</span>'
-            trigger_text = f"""
-            <b>⚡ EXECUTION TIMING RULE (CRITICAL):</b><br>
-            1. All 5 indicators & wick rejection confirm bullish continuation.<br>
-            2. Monitor Quotex chart and enter <b>TURANT at 00 second</b> (candle transition).<br>
-            3. Confluence Score: +{raw_score} / 100.
-            """
-            martingale_text = f"""
-            <b>📈 MARTINGALE (M+1) RECOVERY PLAN (If Step 1 Losses):</b><br>
-            • Agar pehla trade loss ho jaye, toh next 1-min candle par <b>Martingale Step-1 (Amount x2.2)</b> ka CALL tabhi lein jab agli candle par bhi wick rejection dikhe.<br>
-            • Max limit: Sirf 1 Martingale step use karein. Agar woh bhi loss ho toh chain tod dein.
-            """
+            
+            trigger_text = (
+                "**⚡ EXECUTION TIMING RULE (CRITICAL):**\n\n"
+                "1. All 5 indicators & wick rejection confirm bullish continuation.\n"
+                "2. Monitor Quotex chart and enter **TURANT at 00 second** (candle transition).\n"
+                f"3. Confluence Score: +{raw_score} / 100."
+            )
+            martingale_text = (
+                "**📈 MARTINGALE (M+1) RECOVERY PLAN (If Step 1 Losses):**\n\n"
+                "• Agar pehla trade loss ho jaye, toh next 1-min candle par **Martingale Step-1 (Amount x2.2)** ka CALL tabhi lein jab agli candle par bhi wick rejection dikhe.\n"
+                "• Max limit: Sirf 1 Martingale step use karein. Agar woh bhi loss ho toh chain tod dein."
+            )
+            
         else:
             raw_score = -(92 + (hash_seed % 8))
             confidence = 94 + (hash_seed % 5)
             card_class = "signal-card-put"
             header_text = "🔴 SELL / PUT ⬇️ (High-Accuracy 90%+ Setup)"
             badge_html = '<span class="badge-tag badge-high">M15/M5 100% ALIGNED</span> <span class="badge-tag badge-pa">INDICATORS CONFIRMED</span>'
-            trigger_text = f"""
-            <b>⚡ EXECUTION TIMING RULE (CRITICAL):</b><br>
-            1. All 5 indicators & resistance wick rejection confirm bearish continuation.<br>
-            2. Monitor Quotex chart and enter <b>TURANT at 00 second</b> (candle transition).<br>
-            3. Confluence Score: {raw_score} / 100.
-            """
-            martingale_text = f"""
-            <b>📈 MARTINGALE (M+1) RECOVERY PLAN (If Step 1 Losses):</b><br>
-            • Agar pehla trade loss ho jaye, toh next 1-min candle par <b>Martingale Step-1 (Amount x2.2)</b> ka PUT tabhi lein jab agli candle par bhi rejection dikhe.<br>
-            • Max limit: Sirf 1 Martingale step use karein. Agar woh bhi loss ho toh chain tod dein.
-            """
+            
+            trigger_text = (
+                "**⚡ EXECUTION TIMING RULE (CRITICAL):**\n\n"
+                "1. All 5 indicators & resistance wick rejection confirm bearish continuation.\n"
+                "2. Monitor Quotex chart and enter **TURANT at 00 second** (candle transition).\n"
+                f"3. Confluence Score: {raw_score} / 100."
+            )
+            martingale_text = (
+                "**📈 MARTINGALE (M+1) RECOVERY PLAN (If Step 1 Losses):**\n\n"
+                "• Agar pehla trade loss ho jaye, toh next 1-min candle par **Martingale Step-1 (Amount x2.2)** ka PUT tabhi lein jab agli candle par bhi rejection dikhe.\n"
+                "• Max limit: Sirf 1 Martingale step use karein. Agar woh bhi loss ho toh chain tod dein."
+            )
 
         # Main Signal Card Display
         st.markdown(f"""
@@ -137,15 +148,14 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown(f"""
-        <div class="{'trigger-box' if decision != 'SKIP' else 'skip-box'}">
-            {trigger_text}
-        </div>
+        # Clean Markdown Render for Trigger Box & Martingale Box (No tags showing up)
+        st.markdown(f'<div class="{"trigger-box" if decision != "SKIP" else "skip-box"}">', unsafe_allow_html=True)
+        st.markdown(trigger_text)
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        <div class="martingale-box">
-            {martingale_text}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="martingale-box">', unsafe_allow_html=True)
+        st.markdown(martingale_text)
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # 5 Separate Factor Breakdowns with Individual Reasons (Indicators Included)
         st.markdown("<br>", unsafe_allow_html=True)
@@ -190,14 +200,10 @@ with tab1:
 with tab2:
     st.subheader("💡 How 80-90% Accuracy & Martingale Works")
     st.markdown("""
-    <div class="trigger-box">
-        <b>1. Why Accuracy Jumps to 80-90%:</b><br>
-        Pehle app har minute signal deta tha (jisse accuracy 50% rehti thi). Ab 'Institutional Mode' active hone ki wajah se app 70% kharab setups ko khud-b-khud <b>SKIP</b> kar deta hai aur sirf 100% confirmed setups par signal generate karta hai.
-    </div>
-    <br>
-    <div class="skip-box">
-        <b>2. Safe Martingale Protocol:</b><br>
-        Kabhi bhi blind Martingale mat kijiye. Agar pehla trade loss ho, toh sirf tabhi Martingale lein jab app ka signal score 90%+ ho aur agli candle par bhi wick rejection dikhe. Max 1 step hi follow karein.
-    </div>
-    """, unsafe_allow_html=True)
-        
+    **1. Why Accuracy Jumps to 80-90%:**
+    Pehle app har minute signal deta tha (jisse accuracy 50% rehti thi). Ab 'Institutional Mode' active hone ki wajah se app 70% kharab setups ko khud-b-khud **SKIP** kar deta hai aur sirf 100% confirmed setups par signal generate karta hai.
+
+    **2. Safe Martingale Protocol:**
+    Kabhi bhi blind Martingale mat kijiye. Agar pehla trade loss ho, toh sirf tabhi Martingale lein jab app ka signal score 90%+ ho aur agli candle par bhi wick rejection dikhe. Max 1 step hi follow karein.
+    """)
+            
